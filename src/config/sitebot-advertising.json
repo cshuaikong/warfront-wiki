@@ -3,5 +3,56 @@
   "provider": "adsterra",
   "domain": "warfront.wiki",
   "layout": "social-native-horizontal-shared-rails",
-  "slots": []
+  "slots": [
+    {
+      "id": "native-bottom",
+      "kind": "native",
+      "enabled": true,
+      "key": "d7a85e3883c5f9189186bb942155ba4c",
+      "scriptUrl": "https://bauval.org/21/d7a85e3883c5f9189186bb942155ba4c"
+    },
+    {
+      "id": "banner-728x90",
+      "kind": "banner",
+      "enabled": true,
+      "key": "707648f0231520e185e549e8d42d3bc3",
+      "scriptUrl": "https://bauval.org/22/707648f0231520e185e549e8d42d3bc3",
+      "width": 728,
+      "height": 90
+    },
+    {
+      "id": "banner-468x60",
+      "kind": "banner",
+      "enabled": true,
+      "key": "d0bb4d9ae3c68d2a6da14cdc8b23a550",
+      "scriptUrl": "https://bauval.org/22/d0bb4d9ae3c68d2a6da14cdc8b23a550",
+      "width": 468,
+      "height": 60
+    },
+    {
+      "id": "banner-320x50",
+      "kind": "banner",
+      "enabled": true,
+      "key": "22c78f9b585ac2a7c2f1281e846b5bb5",
+      "scriptUrl": "https://bauval.org/22/22c78f9b585ac2a7c2f1281e846b5bb5",
+      "width": 320,
+      "height": 50
+    },
+    {
+      "id": "banner-160x600",
+      "kind": "banner",
+      "enabled": true,
+      "key": "dd1393a356a9c30f583aa562ad7314ed",
+      "scriptUrl": "https://bauval.org/22/dd1393a356a9c30f583aa562ad7314ed",
+      "width": 160,
+      "height": 600
+    },
+    {
+      "id": "social-bar",
+      "kind": "social",
+      "enabled": true,
+      "key": "c4bfd9aecbdc63d57abeddb759797dec",
+      "scriptUrl": "https://bauval.org/14/c4bfd9aecbdc63d57abeddb759797dec"
+    }
+  ]
 }
