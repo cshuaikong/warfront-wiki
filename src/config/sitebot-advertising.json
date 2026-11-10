@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "provider": "adsterra",
+  "domain": "warfront.wiki",
+  "layout": "social-native-horizontal-shared-rails",
+  "slots": []
+}

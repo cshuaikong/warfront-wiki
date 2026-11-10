@@ -1,0 +1,13 @@
+---
+import {NAVIGATION_CONFIG} from '~/config/navigation';
+import {getEntriesByCategory,parseEntryId} from '~/lib/content';
+import {detailPath,listPath} from '~/lib/url';
+import {getUi} from '~/i18n/ui';
+import type {Locale} from '~/i18n/routing';
+interface Props{locale:Locale};const{locale}=Astro.props,ui=getUi(locale),nav=ui.nav as Record<string,string>;
+const groups=await Promise.all(NAVIGATION_CONFIG.map(async c=>{
+ const entries=await getEntriesByCategory(c.key,locale),single=entries.length===1?parseEntryId(entries[0].id):null;
+ return {...c,entries,href:single?detailPath(single.category,single.slug,locale):listPath(c.key,locale)};
+}));
+---
+<section id="guide-directory" class="section border-t border-border"><h2 class="text-2xl font-bold">{ui.home.directoryTitle}</h2><p class="mt-2 max-w-3xl text-muted-foreground">{ui.home.directoryDescription}</p><div class="mt-7 grid gap-5 md:grid-cols-2 lg:grid-cols-3">{groups.filter(c=>c.entries.length).map(c=><section class="rounded-xl border border-border bg-card p-5"><h3 class="text-lg font-bold"><a href={c.href} class="hover:text-nav">{nav[c.key]}</a></h3><ul class="mt-4 space-y-3">{c.entries.map(e=>{const p=parseEntryId(e.id);return p&&<li><a class="text-sm font-medium leading-relaxed underline decoration-border underline-offset-4 hover:text-nav" href={detailPath(p.category,p.slug,locale)}>{e.data.title}</a></li>})}</ul></section>)}</div></section>

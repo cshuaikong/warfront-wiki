@@ -1,0 +1,113 @@
+---
+import advertising from '~/config/sitebot-advertising.json';
+import { getUi } from '~/i18n/ui';
+import { defaultLocale, type Locale } from '~/i18n/routing';
+interface Props { placement:'left'|'right'|'inline'; afterAnswer?:boolean; locale?:Locale; }
+const {placement,afterAnswer=false,locale=defaultLocale}=Astro.props;
+const adLabel=getUi(locale).shared.adLabel;
+const slots=advertising.slots as Array<{id:string;enabled:boolean;kind:string;key:string;scriptUrl:string;width?:number;height?:number}>;
+const trial=advertising.layout==='social-native-banner'||advertising.layout==='native-banner';
+const dualNative=advertising.layout==='social-dual-native-rails';
+const horizontalTwinRails=advertising.layout==='social-native-horizontal-twin-rails';
+const horizontalSharedRails=advertising.layout==='social-native-horizontal-shared-rails';
+const horizontalRails=horizontalTwinRails||horizontalSharedRails||advertising.layout==='social-native-horizontal-rails';
+const rails=advertising.layout==='social-native-banner-rails'||dualNative||horizontalRails,desktopOnly=rails&&placement!=='inline';
+const ids=horizontalRails?(placement==='inline'?['banner-728x90','banner-468x60','banner-320x50']:placement==='left'||horizontalSharedRails?['banner-160x600']:horizontalTwinRails?['banner-160x600-right']:['banner-160x300']):dualNative?(placement==='left'?['banner-160x600']:placement==='right'?['banner-160x300']:[]):rails?(placement==='inline'?['banner-300x250']:placement==='left'?['banner-160x600']:['banner-160x300']):trial?(placement==='inline'?['banner-300x250']:[]):placement==='left'?['banner-160x600','banner-300x250']:placement==='right'?['banner-160x300']:['banner-728x90','banner-468x60','banner-320x50'];
+const variants=ids.flatMap(id=>{const slot=slots.find(s=>s.enabled&&s.id===id&&s.kind==='banner');return slot?[slot]:[];});
+const show=(advertising.layout==='four-article'||trial||rails)&&variants.length>0;
+const consentRequired=slots.some(s=>s.enabled)||!!(import.meta.env.PUBLIC_GA_ID||import.meta.env.PUBLIC_ADSENSE_CLIENT);
+---
+{show && <aside class={'sitebot-banner sitebot-banner-'+placement+' not-prose'} aria-label={adLabel} data-sitebot-ad={'banner-'+placement} data-sitebot-banner={placement} data-sitebot-after-answer={afterAnswer?'true':undefined} data-sitebot-desktop-only={desktopOnly?'true':undefined} data-sitebot-ads-layout={trial||rails?advertising.layout:'four'} data-sitebot-consent-required={consentRequired?'true':undefined}>
+ <p class="mb-2 text-center text-xs uppercase tracking-wider text-muted-foreground">{adLabel}</p>
+ <div data-sitebot-banner-box>
+ {variants.map(slot=><span hidden data-sitebot-ad-choice data-sitebot-banner-src={slot.scriptUrl} data-key={slot.key} data-width={slot.width} data-height={slot.height}></span>)}
+ </div>
+</aside>}
+<style is:global>
+.sitebot-banner{margin:2rem auto;max-width:100%;text-align:center;min-width:0}
+.sitebot-banner[data-sitebot-consent-required="true"]:not([data-sitebot-consent="accepted"]){display:none!important}
+.sitebot-banner iframe{display:block;border:0;margin:0 auto;max-width:100%}
+.sitebot-banner [data-sitebot-banner-box]{margin:0 auto;max-width:100%}
+.sitebot-banner-left [data-sitebot-banner-box]{min-height:250px}
+.sitebot-banner-right [data-sitebot-banner-box]{min-height:300px}
+.sitebot-banner-inline [data-sitebot-banner-box]{min-height:90px}
+.sitebot-banner[data-sitebot-ads-layout="social-native-banner"] [data-sitebot-banner-box],.sitebot-banner[data-sitebot-ads-layout="native-banner"] [data-sitebot-banner-box]{min-height:250px}
+.sitebot-banner-inline[data-sitebot-ads-layout="social-native-banner-rails"] [data-sitebot-banner-box]{min-height:250px}
+.sitebot-banner[data-sitebot-desktop-only="true"]{display:none}
+.sitebot-banner:is([data-sitebot-ads-layout="social-native-banner-rails"],[data-sitebot-ads-layout="social-dual-native-rails"],[data-sitebot-ads-layout="social-native-horizontal-rails"],[data-sitebot-ads-layout="social-native-horizontal-twin-rails"],[data-sitebot-ads-layout="social-native-horizontal-shared-rails"])[data-sitebot-banner-state="unavailable-width"]{display:none}
+.sitebot-banner:is([data-sitebot-ads-layout="social-native-horizontal-rails"],[data-sitebot-ads-layout="social-native-horizontal-twin-rails"],[data-sitebot-ads-layout="social-native-horizontal-shared-rails"]) iframe{max-width:none}
+.sitebot-banner-inline:is([data-sitebot-ads-layout="social-native-horizontal-rails"],[data-sitebot-ads-layout="social-native-horizontal-twin-rails"],[data-sitebot-ads-layout="social-native-horizontal-shared-rails"]) [data-sitebot-banner-box]{min-height:0}
+@media(min-width:1280px){
+ body:has([data-sitebot-ads-layout="four"]) main#main{max-width:calc(100vw - 384px)}
+ body:has([data-sitebot-ads-layout="social-native-banner-rails"],[data-sitebot-ads-layout="social-dual-native-rails"]) main#main{max-width:calc(100vw - 384px);width:calc(100% - 384px);margin-left:auto;margin-right:auto}
+ .sitebot-banner-left,.sitebot-banner-right{position:fixed;top:112px;width:160px;margin:0;z-index:20}
+ .sitebot-banner-left{left:16px}.sitebot-banner-right{right:16px}
+ .sitebot-banner-left [data-sitebot-banner-box]{min-height:600px}
+ .sitebot-banner[data-sitebot-desktop-only="true"]{display:block}
+ .sitebot-banner[data-sitebot-desktop-only="true"][data-sitebot-rail-state="hidden"],.sitebot-banner[data-sitebot-desktop-only="true"][data-sitebot-rail-state="overlap"]{display:none}
+ .sitebot-banner:is([data-sitebot-ads-layout="social-native-horizontal-rails"],[data-sitebot-ads-layout="social-native-horizontal-twin-rails"],[data-sitebot-ads-layout="social-native-horizontal-shared-rails"])[data-sitebot-desktop-only="true"]{top:clamp(72px,calc(100dvh - 640px),112px)}
+ .sitebot-banner:is([data-sitebot-ads-layout="social-native-horizontal-rails"],[data-sitebot-ads-layout="social-native-horizontal-twin-rails"],[data-sitebot-ads-layout="social-native-horizontal-shared-rails"])[data-sitebot-desktop-only="true"]:not([data-sitebot-rail-state="ready"]){display:none}
+ .sitebot-banner:is([data-sitebot-ads-layout="social-native-horizontal-twin-rails"],[data-sitebot-ads-layout="social-native-horizontal-shared-rails"])[data-sitebot-desktop-only="true"] [data-sitebot-banner-box]{width:160px;height:600px;min-height:600px}
+}
+@media(min-width:1280px) and (min-height:712px){body:has([data-sitebot-ads-layout="social-native-horizontal-rails"],[data-sitebot-ads-layout="social-native-horizontal-twin-rails"],[data-sitebot-ads-layout="social-native-horizontal-shared-rails"]) main#main{max-width:calc(100vw - 384px);width:calc(100% - 384px);margin-left:auto;margin-right:auto}}
+@media(max-height:711px){.sitebot-banner:is([data-sitebot-ads-layout="social-native-horizontal-rails"],[data-sitebot-ads-layout="social-native-horizontal-twin-rails"],[data-sitebot-ads-layout="social-native-horizontal-shared-rails"])[data-sitebot-desktop-only="true"]{display:none}}
+@media(max-width:1279px){.sitebot-banner-left,.sitebot-banner-right{position:static}}
+</style>
+<script is:inline>
+(()=>{for(const root of document.querySelectorAll('[data-sitebot-banner]')){
+ if(root.dataset.initialized)continue;root.dataset.initialized='true';
+ let consentGranted=false;try{consentGranted=localStorage.getItem('aw-cookie-consent')==='accepted';}catch{}
+ root.dataset.sitebotConsent=consentGranted?'accepted':'pending';
+ // SSR leaves this unit after the complete body. Move it only after a full
+ // first H2 section, before loading any provider code or observing the unit.
+ if(root.dataset.sitebotAfterAnswer==='true'){
+ const previous=root.previousElementSibling,content=root.closest('.prose')||(previous&&previous.classList.contains('prose')?previous:null);
+ if(content){const headings=Array.from(content.children).filter(el=>/^H[12]$/.test(el.tagName)),first=headings.findIndex(el=>el.tagName==='H2'),next=first<0?null:headings[first+1];
+ if(next)content.insertBefore(root,next);else content.appendChild(root);}
+ }
+ const box=root.querySelector('[data-sitebot-banner-box]'),choices=Array.from(root.querySelectorAll('[data-sitebot-ad-choice]'));if(!box)continue;
+ const desktopRail=root.dataset.sitebotDesktopOnly==='true',horizontalPolicy=['social-native-horizontal-rails','social-native-horizontal-twin-rails','social-native-horizontal-shared-rails'].includes(root.dataset.sitebotAdsLayout),fixedPolicy=['social-native-banner-rails','social-dual-native-rails','social-native-horizontal-rails','social-native-horizontal-twin-rails','social-native-horizontal-shared-rails'].includes(root.dataset.sitebotAdsLayout);
+ let observed=false;
+ const select=()=>{const wide=matchMedia('(min-width:1280px)').matches,place=root.dataset.sitebotBanner;
+ if(desktopRail){
+  if(!wide){root.dataset.sitebotRailState='hidden';return null;}
+  const viewportHeight=Math.min(window.innerHeight||Infinity,window.visualViewport?.height||Infinity,document.documentElement.clientHeight||Infinity);
+  if(horizontalPolicy&&viewportHeight<712){root.dataset.sitebotRailState='hidden';return null;}
+  root.dataset.sitebotRailState='ready';
+  // CSS leaves 192px per edge. Verify the actual main/rail rectangles too:
+  // an incompatible template must hide the rail instead of covering content.
+  const main=document.querySelector('main#main'),content=main&&main.getBoundingClientRect(),rail=root.getBoundingClientRect();
+  if(!content||content.width<=0||rail.width<=0||(place==='left'?rail.right+8>content.left:rail.left-8<content.right)){root.dataset.sitebotRailState='overlap';return null;}
+  if(horizontalPolicy){
+   if(rail.top<72||rail.height<Number(choices[0]?.dataset.height)||rail.bottom+16>viewportHeight){root.dataset.sitebotRailState='unavailable-height';return null;}
+   const tocRects=Array.from(document.querySelectorAll('main#main .toc-nav')).map(el=>el.getBoundingClientRect()).filter(rect=>rect.width>0&&rect.height>0);
+   if(tocRects.some(rect=>place==='left'?rail.right+8>rect.left:rail.left-8<rect.right)){root.dataset.sitebotRailState='overlap';return null;}
+  }
+ }
+ if(fixedPolicy)root.dataset.sitebotBannerState='ready';
+ let allowed=choices.filter(c=>place!=='left'||Number(c.dataset.width)===(wide?160:300));
+ if(horizontalPolicy){
+  // Select a single original-size unit. Resizing only hides/restores it;
+  // it must never replace that loaded provider key with another size.
+  allowed=box.dataset.loaded?allowed.filter(c=>c.dataset.key===box.dataset.loaded):allowed.sort((a,b)=>Number(b.dataset.width)-Number(a.dataset.width));
+ }
+ const availableWidth=horizontalPolicy&&!desktopRail?(root.clientWidth||root.parentElement?.clientWidth||0):box.clientWidth;
+ const chosen=allowed.find(c=>Number(c.dataset.width)<=availableWidth)||allowed[allowed.length-1];if(!chosen)return null;
+ if(Number(chosen.dataset.width)>availableWidth){if(fixedPolicy)root.dataset.sitebotBannerState='unavailable-width';return null;}
+ return chosen;};
+ const load=()=>{const chosen=select();if(!chosen||box.dataset.loaded||root.dataset.sitebotConsentRequired==='true'&&!consentGranted)return;
+ const width=Number(chosen.dataset.width),height=Number(chosen.dataset.height);
+ box.dataset.loaded=chosen.dataset.key;box.style.width=width+'px';box.style.height=height+'px';
+ const frame=document.createElement('iframe');frame.width=String(width);frame.height=String(height);frame.title=root.getAttribute('aria-label')||'';frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-popups allow-forms');
+ frame.srcdoc='<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;padding:0;overflow:hidden}</style></head><body><script>window.atOptions='+JSON.stringify({key:chosen.dataset.key,format:'iframe',height,width,params:{}})+';</scr'+'ipt><script data-cfasync="false" src="'+chosen.dataset.sitebotBannerSrc+'"></scr'+'ipt></body></html>';
+ box.appendChild(frame);};
+ document.addEventListener('aw:consent-accepted',()=>{consentGranted=true;root.dataset.sitebotConsent='accepted';if(observed)load();else if(fixedPolicy&&!desktopRail)select();});
+ // Width eligibility does not load a provider script. It also removes an
+ // undersized inline slot before it scrolls into the lazy-loading margin.
+ if(fixedPolicy&&!desktopRail)select();
+ if(desktopRail){observed=true;if(horizontalPolicy&&document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();}else if('IntersectionObserver' in window){const observer=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){observed=true;observer.disconnect();load();}},{rootMargin:'200px'});observer.observe(root);}else{observed=true;load();}
+ const resize=()=>{if(!observed&&fixedPolicy&&!desktopRail)select();if(observed&&(fixedPolicy||desktopRail||!box.dataset.loaded))load();};
+ window.addEventListener('resize',resize,{passive:true});
+ if(horizontalPolicy)window.visualViewport?.addEventListener('resize',resize,{passive:true});
+}})();
+</script>

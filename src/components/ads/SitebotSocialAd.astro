@@ -1,0 +1,25 @@
+---
+import advertising from '~/config/sitebot-advertising.json';
+import { getUi } from '~/i18n/ui';
+import { defaultLocale, type Locale } from '~/i18n/routing';
+interface Props { locale?:Locale; }
+const {locale=defaultLocale}=Astro.props;
+const adLabel=getUi(locale).shared.adLabel;
+const slots=advertising.slots as Array<{id:string;enabled:boolean;kind:string;key:string;scriptUrl:string}>;
+const slot=['social-native-banner','social-native-banner-rails','social-dual-native-rails','social-native-horizontal-rails','social-native-horizontal-twin-rails','social-native-horizontal-shared-rails'].includes(advertising.layout)?slots.find(s=>s.enabled&&s.kind==='social'):undefined;
+const consentRequired=slots.some(s=>s.enabled)||!!(import.meta.env.PUBLIC_GA_ID||import.meta.env.PUBLIC_ADSENSE_CLIENT);
+---
+{slot && <span hidden aria-label={adLabel} data-sitebot-ad={slot.id} data-sitebot-social-src={slot.scriptUrl} data-sitebot-consent-required={consentRequired?'true':undefined}></span>}
+<script is:inline>
+(()=>{const el=document.querySelector('[data-sitebot-social-src]');if(!el||el.dataset.initialized)return;el.dataset.initialized='true';
+let delayElapsed=false,consentGranted=false;try{consentGranted=localStorage.getItem('aw-cookie-consent')==='accepted';}catch{}
+const load=()=>{if(!delayElapsed||el.dataset.loaded||el.dataset.sitebotConsentRequired==='true'&&!consentGranted)return;if(document.visibilityState==='hidden'){
+ const visible=()=>{if(document.visibilityState!=='hidden'){document.removeEventListener('visibilitychange',visible);load();}};
+ document.addEventListener('visibilitychange',visible);return;}
+ el.dataset.loaded='true';const url=el.dataset.sitebotSocialSrc;if(Array.from(document.scripts).some(s=>s.src===url)){el.dataset.adStatus='already-loaded';return;}
+ const script=document.createElement('script');script.dataset.cfasync='false';script.src=url;script.onerror=()=>{el.dataset.adStatus='unavailable';};document.body.appendChild(script);
+};
+document.addEventListener('aw:consent-accepted',()=>{consentGranted=true;load();});
+const schedule=()=>{if(el.dataset.scheduled)return;el.dataset.scheduled='true';setTimeout(()=>{delayElapsed=true;load();},1000);};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();})();
+</script>

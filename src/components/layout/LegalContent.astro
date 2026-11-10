@@ -1,0 +1,24 @@
+---
+/** Legal copy is the site's localized operator-approved JSON, not demo claims. */
+import { site } from '~/config/site';
+import { defaultLocale, isLocale } from '~/i18n/routing';
+import { getUi } from '~/i18n/ui';
+interface Props { page: 'about' | 'privacy-policy' | 'terms-of-service' | 'copyright' | 'contact' }
+const { page } = Astro.props;
+const prefix = Astro.url.pathname.split('/')[1] ?? '';
+const locale = isLocale(prefix) ? prefix : defaultLocale;
+const ui = getUi(locale);
+const content = ui.legal[page];
+---
+<p>{content.intro}</p>
+{content.sections.map(section => <section>
+  <h2>{section.heading}</h2>
+  <p>{section.body}</p>
+</section>)}
+{site.contactEmail && <address class="mt-8 rounded-lg border border-border bg-muted/30 p-5 not-italic">
+  <p class="font-semibold">{ui.footer.contact}</p>
+  <a href={`mailto:${site.contactEmail}`} class="break-all">{site.contactEmail}</a>
+</address>}
+{page === 'contact' && site.social.official && <p class="mt-5">
+  <a href={site.social.official} target="_blank" rel="noopener noreferrer">{ui.footer.playGame}</a>
+</p>}

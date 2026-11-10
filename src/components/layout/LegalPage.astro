@@ -1,0 +1,24 @@
+---
+/** Localized operator pages, dated when this copy was actually authored. */
+import LocaleLayout from './LocaleLayout.astro';
+import { locales, type Locale } from '~/i18n/routing';
+import { getUi } from '~/i18n/ui';
+import { localizePath, languageAlternates } from '~/lib/url';
+import { pageTitle } from '~/lib/seo';
+interface Props { locale:Locale; title:string; description?:string; lastUpdated?:string }
+const {locale}=Astro.props,ui=getUi(locale);
+const pageKey=Astro.url.pathname.split('/').filter(Boolean).at(-1) as keyof typeof ui.legal;
+const footerKey:Record<string,string>={about:'about','privacy-policy':'privacyPolicy','terms-of-service':'termsOfService',copyright:'copyright',contact:'contact'};
+const footer=ui.footer as Record<string,string>;
+const title=footer[footerKey[pageKey]]??Astro.props.title;
+const description=(ui.legal[pageKey]?.intro??Astro.props.description??title).slice(0,160);
+const alternates=languageAlternates(loc=>localizePath('/'+pageKey+'/',loc),locales);
+const lastUpdated='2026-11-10';
+---
+<LocaleLayout locale={locale} title={pageTitle(title)} description={description} alternates={alternates}>
+  <article class="mx-auto max-w-3xl">
+    <h1 class="text-3xl font-extrabold tracking-tight md:text-4xl">{title}</h1>
+    <p class="mt-2 text-sm text-muted-foreground">{ui.shared.lastUpdated}: <time datetime={lastUpdated}>{lastUpdated}</time></p>
+    <div class="prose prose-lg mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-a:text-nav"><slot /></div>
+  </article>
+</LocaleLayout>
